@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -9,7 +10,14 @@ public class GameManager : MonoBehaviour
         PAUSED = 0, PLAYER1, PLAYER2
     };
 
+    [SerializeField] private Image[] _imageField = new Image[9];
+
     private GameState _currentState = GameState.PAUSED;
+
+    //private Dictionary<int, PlayerBase> _players = new Dictionary<int, PlayerBase>();
+    private Dictionary<Image, int> _gameFieldDict = new Dictionary<Image, int>();
+
+    public static GameManager Instance { get; private set; }
 
     private int[] _gameField = new int[9]{
         0, 0, 0,
@@ -17,11 +25,23 @@ public class GameManager : MonoBehaviour
         0, 0, 0
     };
 
+    private void Awake()
+    {
+        Instance = this;
+    }
+
     private void Start()
     {
         int randNumber = Random.Range(0, 1);
-        _currentState = randNumber == 0 ? GameState.PLAYER1 : GameState.PLAYER2;
+        _currentState = GameState.PLAYER1;
+
+        for (int i = 0; i < _gameField.Length; i++)
+        {
+            _gameFieldDict.Add(_imageField[i], i);
+        }
     }
+
+    
 
     public void TestMove()
     {
@@ -40,19 +60,30 @@ public class GameManager : MonoBehaviour
 
     private int getRandNumber() => Random.Range(0, 9);
 
-    public bool MakeMove(int pPlayerNumber, int index)
+    public void MakeMove(Image pImage, int pPlayerNumber)
     {
-        if (_gameField[index] != 0)
-        {
-            Debug.Log("Field is already taken");
-            return false;
-        }
+        int gamePos = _gameField[_gameFieldDict[pImage]];
+
+
+        if (gamePos != 0)
+            Debug.Log("Field has already been taken");
         else
         {
-            _gameField[index] = pPlayerNumber;
-            return true;
+            Debug.Log("Field has not been taken");
+            _gameField[_gameFieldDict[pImage]] = pPlayerNumber;
+            if (pPlayerNumber == 1)
+                pImage.color = Color.green;
+            else
+                pImage.color = Color.red;
         }
+
+        if ((int)_currentState == pPlayerNumber)
+            _currentState = GameState.PLAYER2;
+        else
+            _currentState = GameState.PLAYER1;
     }
+
+    public Image[] GetImageList() => _imageField;
 
     public void ShowGameFieldInConsole()
     {
